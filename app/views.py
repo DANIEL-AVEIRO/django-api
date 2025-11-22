@@ -30,32 +30,41 @@ def product_list(request):
 
 @api_view(["POST"])
 def product_create(request):
-    name = request.data.get("name")
-    price = request.data.get("price")
-    if not name and not price:
+    try:
+        name = request.data.get("name")
+        price = request.data.get("price")
+        if not name and not price:
+            return Response(
+                {
+                    "success": False,
+                    "message": "All fields are required",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        product = ProductModel.objects.create(name=name, price=price)
+        product.save()
+        return Response(
+            {
+                "success": True,
+                "message": "Product create successfully",
+                "product": {
+                    "name": product.name,
+                    "price": product.price,
+                    "created_at": product.created_at,
+                    "updated_at": product.updated_at,
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+    except Exception as e:
         return Response(
             {
                 "success": False,
-                "message": "All fields are required",
+                "message": f"Error {str(e)}",
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
-
-    product = ProductModel.objects.create(name=name, price=price)
-    product.save()
-    return Response(
-        {
-            "success": True,
-            "message": "Product create successfully",
-            "product": {
-                "name": product.name,
-                "price": product.price,
-                "created_at": product.created_at,
-                "updated_at": product.updated_at,
-            },
-        },
-        status=status.HTTP_201_CREATED,
-    )
 
 
 @api_view(["PUT"])
